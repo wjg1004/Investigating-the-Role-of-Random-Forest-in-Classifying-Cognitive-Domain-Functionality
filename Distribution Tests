@@ -1,0 +1,70 @@
+#Block 1
+#The First Block of code is a series of distribution tests conducted on the cognitive ability tests of Attention, Digit Span, and Trail Making
+setwd("C:/Users/wgeit/Documents/School/Research/Data")
+library(fitdistrplus)
+library(survival)
+library(MASS)
+library(ADGofTest)
+library(randomForest)
+library(e1071)
+library(lattice)
+library(goftest)
+set.seed(100)
+
+attp=read.table("Gray Matter Proportions Attention Update.csv",header=TRUE,sep=",")
+head(attp)
+attp[1,5] 
+summary(attp$Atten1)
+summary(attp$DigitSpan)
+summary(attp$Trail)
+
+par(mfrow=c(2,2))
+hist(attp$Atten1,main="Attention")
+hist(attp$DigitSpan,main="Digit Span")
+hist(attp$Trail,main="Trailmaking")
+
+par(mfrow=c(1,1))
+qqnorm(attp$Atten1,main="Attention")
+qqline(attp$Atten1,main="Attention")
+qqnorm(attp$DigitSpan,main="Digit Span")
+qqline(attp$DigitSpan,main="Digit Span")
+qqnorm(attp$Trail,main="Trailmaking")
+qqline(attp$Trail,main="Trailmaking")
+
+H0: Distribution is normal
+HA: Distribution is not normal
+Alpha=0.05
+
+shapiro.test(attp$Atten1)
+shapiro.test(attp$DigitSpan)
+shapiro.test(attp$Trail)
+
+#Digit Span and Trail are non normal
+#Attention is Normal 
+
+#Distribution Test on Digit Span
+fitDST=fitdistr(attp$DigitSpan,'t')
+	fitDST$estimate
+	dfD=fitDST$estimate[3]
+	dfD
+		attributes(fitDST)
+## Changed to 10th percentile cutoff
+qt(c(0.1),df=dfD) 
+
+ad.test(attp$Digit,null="pt",df=dfD)
+
+kurtosis(attp$DigitSpan)
+skewness(attp$DigitSpan)
+
+#Distribution Test on Trailmaking
+fitTM=fitdistr(attp$Trail,'t')
+	fitTM$estimate
+	dfT=fitTM$estimate[3]
+	dfT
+		#attributes(fitTM)
+## Changed to 10th percentile cutoff
+qt(c(0.1),df=dfT)
+ad.test(attp$Trail,null="pt",df=dfT)
+
+kurtosis(attp$Trail)
+skewness(attp$Trail)
