@@ -1,0 +1,57 @@
+#BLOCK 5: Random Forest Using attention.class data set
+#This data set uses: 2 possible ratings assigned to a patient's test score (Healthy, Impairment). The digit span and trail makiing tests follow normal distribution at alpha=0.05 and attention follows t.
+#From this, two classes were determined based on the probability distrbutions => Impairment = (x<0.33),Else Healthy  
+#Class breaks from histograms are used to determine the class assignments for each brain proportion 
+
+#Simple analysis to review the distribution of the test classes
+table(as.factor(attention.class[,1]))
+table(as.factor(attention.class[,2]))
+table(as.factor(attention.class[,3]))
+
+#Create test and train data sets from attention.class
+s=sample(nrow(attp),251)#2/3 data--needs formalized (add round function)
+a.train=attention.class[s,]
+a.test=attention.class[-s,]
+	head(a.train)
+	summary(a.train)
+
+#Random Forest
+rfAC=randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, 
+	data=a.train,importance=TRUE,ntree=1000)
+print(rfAC)
+warnings()
+
+plot(rfAC) #Error rate convergence 
+importance(rfAC) #Variable Importance Readings
+varImpPlot(rfAC)
+
+rfAC.predict=predict(rfAC,a.test)
+#print(rfAC.predict)
+
+library(caret)
+confusionMatrix(rfAC.predict,a.test$Atten1)
+
+
+rfDC=randomForest(DigitSpan~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, 
+	data=a.train, importance=TRUE,ntree=200)
+print(rfDC)
+
+rfDC.predict=predict(rfDC,a.test)
+#print(rfDC.predict)
+
+library(caret)
+confusionMatrix(rfDC.predict,a.test$DigitSpan)
+
+
+rfTC=randomForest(Trail~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, 
+	data=a.train, importance=TRUE,ntree=200)
+print(rfTC)	
+
+rfTC.predict=predict(rfTC,a.test)
+#print(rfTC.predict)
+
+library(caret)
+confusionMatrix(rfTC.predict,a.test$Trail)
