@@ -1,0 +1,207 @@
+#Labeling classes based off of the histogram breaks
+par(mfrow=c(4,6))
+x=6
+y=1
+z=1
+classBreak=0
+
+for(x in 6:27){
+	classBreak=hist(attp[,x])$breaks
+	for(z in 1:length(attp[,x])){
+		for(y in 1:(length(classBreak)-1)){
+			if(classBreak[y]<attp[z,x]&classBreak[y+1]>=attp[z,x]){
+				atc[z,x]=paste("Class",y,sep=" ")
+				}
+			y=y+1
+			}
+		z=z+1
+		}
+	x=x+1
+	}
+#classBreak
+head(atc)
+summary(atc)
+	table(as.factor(atc[,11])) #individual variable review to see how breaks and classes work
+	table(as.factor(atc[,11:32])) #All values receive a class ranking
+	head(attp[,11]) #check loop accuracy
+	hist(attp[,11])$breaks #check loop accuracy
+	attributes(hist(attp[,i],main=title))
+
+attention.class=atc[,-(4:5)]
+colnames(attention.class)=c(colnames(attp)[3:27])
+	head(attention.class)
+	summary(attention.class)
+	typeof(attention.class[,1])
+
+#Change Data Type to accomodate for random forest procedure
+i=1
+for(i in 1:ncol(attention.class)){
+	if(is.character(attention.class[,i])){
+		attention.class[,i]=as.factor(attention.class[,i])
+	}
+	else{
+		attention.class[,i]=as.factor(attention.class[,i])
+	}
+}
+
+summary(attention.class)
+head(attention.class)
+	ncol(attention.class)
+
+#Class breakdown for each variable
+t=4
+for(t in 4:25){
+	print(colnames(attention.class)[t])
+	print(table(as.factor(attention.class[,t])))
+	t=t+1	
+}
+#*************************************************************
+#*************************************************************
+#BLOCK 4: Brain Region Proportion Assessments--Shape and skewness
+#This block of code is used to determine the appropriate amount of classes to use for the brain volume proportions. Initially, it is assumed 3 classes are sufficient.
+
+AttBrainRegions=colnames(attp)[6:27]
+par(mfrow=c(3,4))
+i=11
+j=1
+for(i in 6:17){
+	title=AttBrainRegions[j]
+	hist(attp[,i],main=title)	
+	i=i+1
+	j=j+1
+}
+
+par(mfrow=c(3,4))
+m=23
+n=13
+for(m in 18:27){
+	title=AttBrainRegions[n]
+	hist(attp[,m],main=title)
+	m=m+1
+	n=n+1
+}
+
+a.scatter=cbind(attention.class[1:3],attp[3:27])
+	head(a.scatter)
+	summary(a.scatter[,3])
+AttBrainRegions=colnames(attp)[6:27]
+
+par(mfrow=c(2,3))
+i=7
+j=1
+for(i in 7:12){
+	title=AttBrainRegions[j]
+	attach(a.scatter);plot(a.scatter[,i],a.scatter[,6],col=c("red","blue")[a.scatter[,3]],pch=20,xlab=title,ylab="Attention");detach(a.scatter)
+	i=i+1
+	j=j+1
+}
+par(mfrow=c(2,3))
+i=13
+j=7
+for(i in 13:18){
+	title=AttBrainRegions[j]
+	attach(a.scatter);plot(a.scatter[,i],a.scatter[,6],col=c("red","blue","green")[a.scatter[,3]],pch=20,xlab=title,ylab="Attention");detach(a.scatter)
+	i=i+1
+	j=j+1
+}
+par(mfrow=c(2,3))
+i=19
+j=13
+for(i in 19:24){
+	title=AttBrainRegions[j]
+	attach(a.scatter);plot(a.scatter[,i],a.scatter[,6],col=c("red","blue","green")[a.scatter[,3]],pch=20,xlab=title,ylab="Attention");detach(a.scatter)
+	i=i+1
+	j=j+1
+}
+par(mfrow=c(2,3))
+i=25
+j=19
+for(i in 25:28){
+	title=AttBrainRegions[j]
+	attach(a.scatter);plot(a.scatter[,i],a.scatter[,6],col=c("red","blue","green")[a.scatter[,3]],pch=20,xlab=title,ylab="Attention");detach(a.scatter)
+	i=i+1
+	j=j+1
+}
+
+#Second round of box plots--This time the numerical data being used is the standadized test scores, while the groupings are the brain volume classes
+#Again, this is done in effort to find some underlying trend within the data. 
+#First step is to create another data frame with these specifications
+#Test In Consideration is Attention 
+x=7
+y=1
+classBreaks.2=0
+for(x in 7:28){
+	classBreaks.2[y]=length(hist(attp[,x])$breaks)
+	x=x+1
+	y=y+1
+}
+	print(classBreaks.2) #Provides the amount of breaks for each variable
+	length(classBreaks.2) #Confirms that 22 variables were used
+AttBrainRegions=colnames(attp)[6:27]
+a.scatter=cbind(attention.class[1:3],attp[3:27])
+a.scatter.2=cbind(a.scatter[1:ncol(a.scatter)],attention.class[4:ncol(attention.class)])
+head(a.scatter.2)
+	ncol(a.scatter)
+	ncol(a.scatter.2)
+
+par(mfrow=c(2,3))
+i=ncol(a.scatter)+1
+j=1
+for(i in (ncol(a.scatter)+1):(ncol(a.scatter)+6)){
+	plot(a.scatter.2[,i],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[j]),main=AttBrainRegions[j])
+	i=i+1
+	j=j+1
+}
+
+par(mfrow=c(2,3))
+i=ncol(a.scatter)+7
+j=7
+for(i in (ncol(a.scatter)+7):(ncol(a.scatter)+12)){
+	plot(a.scatter.2[,i],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[j]),main=AttBrainRegions[j])
+	i=i+1
+	j=j+1
+}
+
+par(mfrow=c(2,3))
+i=ncol(a.scatter)+13
+j=13
+for(i in (ncol(a.scatter)+13):(ncol(a.scatter)+18)){
+	plot(a.scatter.2[,i],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[j]),main=AttBrainRegions[j])
+	i=i+1
+	j=j+1
+}
+
+par(mfrow=c(2,2))
+i=ncol(a.scatter)+19
+j=19
+for(i in (ncol(a.scatter)+19):(ncol(a.scatter)+22)){
+	plot(a.scatter.2[,i],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[j]),main=AttBrainRegions[j])
+	i=i+1
+	j=j+1
+}
+
+#One-Way Anova Tests for each brain region relative to the average attention score
+#H0=means are equal
+#HA=Difference exists with at least one mean
+#Alpha=0.05
+
+a.scatter=cbind(attention.class[1:3],attp[3:27])
+a.scatter.2=cbind(a.scatter[1:ncol(a.scatter)],attention.class[4:ncol(attention.class)])
+
+x=ncol(a.scatter)+1
+y=1
+for(x in (ncol(a.scatter)+1):(ncol(a.scatter)+22)){
+	onewayBrain=aov(a.scatter.2[,6]~a.scatter.2[,x],data=a.scatter.2)
+	cat("Brain Region:",AttBrainRegions[y],"\n")
+	print(summary(onewayBrain))
+	cat("\n")
+	x=x+1
+	y=y+1
+}
+attributes(onewayBrain)
+summary(onewayBrain)
+
+#Graphical Analysis of AntCingR PostCingR individually for PWRPoint
+plot(a.scatter.2[,12],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[6]),main=AttBrainRegions[6])
+plot(a.scatter.2[,8],a.scatter.2[,6],pch=20,col=rainbow(classBreaks.2[8]),main=AttBrainRegions[8])
+
