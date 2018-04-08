@@ -1,0 +1,48 @@
+#Block 3: Evaluation and Comparison
+#Since we had to modify our data to fix the imbalancedness, Accuracy only is not enough to evaluate and compare our models
+#This block looks at possible metrics to accurately evaluate our models
+
+#Graph Code
+#********************************************************************
+models <- list(original = rfAC,
+                       over = rfAC.over,
+                       under = rfAC.under,
+                       overunder = rfAC.overunder,
+                       rose = rfAC.rose,
+				smote=rfAC.S)
+
+cm_original<-confusionMatrix(rfAC.predict,a.test$Atten1)
+cm_over<-confusionMatrix(rfAC.over.predict,a.test$Atten1)
+cm_under<-confusionMatrix(rfAC.under.predict,a.test$Atten1)
+cm_overunder<-confusionMatrix(rfAC.overunder.predict,a.test$Atten1)
+cm_rose<-confusionMatrix(rfAC.rose.predict,a.test$Atten1)
+cm_smote<-confusionMatrix(rfAC.S.predict,a.test$Atten1)
+
+
+library(dplyr)
+library(tidyr)
+comparison <- data.frame(model = names(models),
+                         Sensitivity = rep(NA, length(models)),
+                         Specificity = rep(NA, length(models)),
+                         Precision = rep(NA, length(models)),
+                         Recall = rep(NA, length(models)),
+                         F1 = rep(NA, length(models)))
+
+for (name in names(models)) {
+model <- get(paste0("cm_", name))
+
+comparison[comparison$model == name, ] <- filter(comparison, model == name) %>%
+mutate_(Sensitivity = model$byClass[["Sensitivity"]],
+Specificity = model$byClass[["Specificity"]],
+Precision = model$byClass[["Precision"]],
+Recall = model$byClass[["Recall"]],
+F1 = model$byClass[["F1"]],
+Accuracy = model$byClass[
+}
+
+comparison %>%
+  gather(x, y, Sensitivity:F1) %>%
+  ggplot(aes(x = x, y = y, color = model)) +
+    geom_jitter(width = 0.2, alpha = 0.5, size = 3)
+
+
