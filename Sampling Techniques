@@ -1,0 +1,93 @@
+#Sampling Techniques and Model Evaluation
+#Using binary classification (Healthy vs. Impaired) results in our data being imbalanced (roughly .9 vs .1) and innaccruate results
+#Measures must be taken to balance the data, appropriately evaluate results after balancing, and finally comparing multiple balancing techniques
+
+###################################################################
+###################################################################
+#Block 1: Descriptives; reviewing the imbalancedness of the data
+
+str(a.train)
+
+# of healthy and impaired
+table(a.train$DigitSpan)
+table(a.train$Trail)
+table(a.train$Atten1)
+
+#proportions
+prop.table(table(a.train$DigitSpan))
+prop.table(table(a.train$Trail))
+prop.table(table(a.train$Atten1))
+
+###################################################################
+###################################################################
+#Block 2: Sampling Techniques
+#used ovun.sample function from ROSE package for simple sampling techniques
+#install.packages("ROSE")
+#install.packages("SMOTE")
+library(ROSE)
+
+#T1: Oversampling
+#samples minority class with replacement until it is of equal size to the majority  
+oversamp<-ovun.sample(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=a.train,method="over", N=456)$data
+table(oversamp$Atten1)
+
+rfAC.over<-randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=oversamp, importance=TRUE,ntree=200)
+print(rfAC.over)
+
+rfAC.over.predict=predict(rfAC.over,a.test)
+confusionMatrix(rfAC.over.predict,a.test$Atten1)
+
+#T2: Undersampling
+#only takes as many samples from majority class as there are in the minority (n=23)
+undersamp<-ovun.sample(Atten1~.,data=a.train, method = "under", N=46, seed = 1)$data
+table(undersamp$Atten1)
+
+rfAC.under<-randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, data=undersamp, importance=TRUE,ntree=200)
+print(rfAC.under)
+
+rfAC.under.predict=predict(rfAC.under,a.test)
+confusionMatrix(rfAC.under.predict,a.test$Atten1)
+
+#T3: The old Overunder
+#Oversampling miniority class and undersampling majority class
+the.old.overunder<-ovun.sample(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=a.train, method = "both", p=0.5, N=251,seed=1)$data
+table(the.old.overunder$Atten1)
+
+rfAC.overunder<-randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, data=the.old.overunder, importance=TRUE,ntree=200)
+print(rfAC.overunder)
+
+rfAC.overunder.predict=predict(rfAC.overunder,a.test)
+confusionMatrix(rfAC.overunder.predict,a.test$Atten1)
+
+#T4: ROSE
+#oversampling technique that generates synthetic examples of minority class
+data.rose<-ROSE(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=a.train,seed = 1)$data
+table(data.rose$Atten1)
+
+rfAC.rose<-randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, data=data.rose, importance=TRUE,ntree=200)
+print(rfAC.rose)
+
+rfAC.rose.predict=predict(rfAC.rose,a.test)
+confusionMatrix(rfAC.rose.predict,a.test$Atten1)
+
+#T5: SMOTE
+#install.packages("DMwR")
+library(DMwR)
+
+a.train.syn=SMOTE(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=a.train,perc.over=1000,perc.under=110)
+table(a.train.syn$Atten1)
+
+rfAC.S=randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,data=a.train.syn, importance=TRUE,ntree=400)
+print(rfAC.S)
+
+rfAC.S.predict=predict(rfAC.S,a.test)
+confusionMatrix(rfAC.S.predict,a.test$Atten1)
