@@ -1,0 +1,84 @@
+#Distribution test results
+#Attention 1~Normal
+#Digit Span~T
+#Trailmaking~T
+
+#Find parameters for all three variables
+meanA=mean(attp$Atten1)
+sdA=sd(attp$Atten1)
+meanDS=mean(attp$DigitSpan)
+sdDS=sd(attp$DigitSpan)
+meanTM=mean(attp$Trail)
+sdTM=sd(attp$Trail)
+
+#The atc data set will consist of: Attention 1 average score classes, Digit Span average score classes, trailmaking average score classes, and all brain proportion classes 
+#Bound Matrix is calculated below using the respective distributions and calculated bounds:
+##Only need 1 bound for each now, so I took out the "upper" bound, and made nrows=1 for the testAttBound
+
+tb.1=qt(c(0.1),df=dfD)
+tb.3=qt(c(0.1),df=dfT)
+tb.5=qnorm(.1,mean=meanA,sd=sdA)
+
+testAttBounds=as.data.frame(matrix(c(tb.1,tb.3,tb.5),nrow=1,ncol=3))
+#testAttBounds[1,2]
+#print(testAttBounds)
+
+colnames(testAttBounds)=c("DigitSpan","Trail","Attention")
+print(testAttBounds)
+
+#*************************************************************
+#*************************************************************
+#BLOCK 3: Looping structure to create data set
+#***This section below could probably become a function to save space and make the code more legible 
+
+#Edits ClassNum=2, took out 3rd class and changed "Average" to "Healthy"
+a=3
+b=1
+
+atc=as.data.frame(matrix(,nrow=nrow(attp),ncol=(ncol(attp)-1)))
+
+for(a in 3:5){
+	if(a==3){
+		c=1
+		for(b in 1:length(attp[,a])){	
+			if(attp[b,a]<testAttBounds[1,c]){
+				atc[b,c]="Impairment"
+			}
+			else{
+				atc[b,c]="Healthy"
+			}
+
+		b=b+1
+		}
+	}
+	else if(a==4){
+		c=2
+		for(b in 1:length(attp[,a])){	
+			if(attp[b,a]<testAttBounds[1,c]){
+				atc[b,c]="Impairment"
+			}
+			else{
+				atc[b,c]="Healthy"
+			}
+			
+		b=b+1
+		}	
+	}
+	else{
+		c=3
+		for(b in 1:length(attp[,a])){	
+			if(attp[b,a]<testAttBounds[1,c]){
+				atc[b,c]="Impairment"
+			}
+			else{
+				atc[b,c]="Healthy"
+			}
+			
+		b=b+1
+		}
+	}
+a=a+2
+}
+head(atc[1:3])
+attp[,5]
+head(attp)
