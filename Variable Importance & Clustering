@@ -1,0 +1,52 @@
+#Synthetic data with DMwR package and SMOTE function
+s=sample(nrow(attp),251)#2/3 data--needs formalized (add round function)
+a.train=attention.class[s,]
+a.test=attention.class[-s,]
+
+a.train.syn=SMOTE(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR,
+	data=a.train,perc.over=1000,perc.under=110)
+table(a.train.syn$Atten1)
+	head(a.train.syn)
+rfAC.S=randomForest(Atten1~MFGL+MFGR+SMAL+SMAR+AntCingL+AntCingR+PostCingL+PostCingR+
+	CunL+CunR+SOGL+SOGR+MOGL+MOGR+FusL+FusR+SPLL+SPLR+AngL+AngR+PrecunL+PrecunR, 
+	data=a.train.syn, importance=TRUE,ntree=200,keep.inbag=TRUE)
+print(rfAC.S)
+	attributes(rfAC.S)
+	rfAC.S$predicted
+	rfAC.S$confusion
+	plot(rfAC.S)
+	importance(rfAC.S) #Reference:#https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm
+	varImpPlot(rfAC.S,type=1,pch=20,col="black", main="Variable Importance Plot")
+		rfAC.S$importanceSD
+		rf.imp=importance(rfAC.S,type=1)
+			hist(rf.imp)
+	#margin(rfAC.S)
+	varUsed(rfAC.S)
+		hist(varUsed(rfAC.S))
+		mean(varUsed(rfAC.S))
+		sd(varUsed(rfAC.S))
+			(varUsed(rfAC.S)-mean(varUsed(rfAC.S)))/sd(varUsed(rfAC.S))
+	getTree(rfAC.S,k=1,labelVar=TRUE)
+		gt=getTree(rfAC.S,k=1,labelVar=TRUE)
+		forest=gt[,4]
+		length(forest)
+			table(forest)
+	varimp.varused=cbind(importance(rfAC.S)[,3],varUsed(rfAC.S))
+	sorted.VI.VU=varimp.varused[order(varimp.varused[,1]),]
+		colnames(sorted.VI.VU)=c("MDA","Used")		
+		print(sorted.VI.VU)
+		mean(sorted.VI.VU[14:22,1])
+		mean(sorted.VI.VU[1:13,1])
+	plot(varimp.varused[,1],varimp.varused[,2]) #shows trend between variable used and variable importance	
+		#Clustering--Dendrogram 
+			clust=hclust(dist(sorted.VI.VU[,1])) 
+			plot(clust,labels=sorted.VI.VU[,2],main="Cluster Analysis") 
+		#Clustering K-means
+			clust.2=kmeans(sorted.VI.VU,2)
+			clust.2$cluster
+			plot(sorted.VI.VU[,1],sorted.VI.VU[,2],
+				xlab="Mean Decrease in Accuracy",ylab="Frequency",main="Cluster Analysis on Variable Importance",
+				col=clust.2$cluster,pch=20)
+					#plot(sorted.VI.VU[,1:2],col=kmeans(sorted.VI.VU[,1],2)$cluster,pch=20)
+
